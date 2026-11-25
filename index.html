@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>DAMN</title>
+
+  <!-- Favicon: Custom Damn.png -->
+  <link rel="icon" type="image/png" href="Damn.png">
+
+  <!-- PWA Web App Manifest & Meta Tags for Chrome App Installation -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#141416">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="DAMN">
+  <link rel="apple-touch-icon" href="Damn.png">
+
+  <!-- Google Fonts: Outfit & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap"
+    rel="stylesheet">
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <!-- Firebase Web SDK v10 (Compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <!-- Ambient Liquid Canvas Background -->
+  <div class="ambient-canvas"></div>
+
+  <!-- ==================== LOADING / SPLASH SCREEN WITH DAMN AI MASCOT ==================== -->
+  <div id="loadingScreen" class="loading-screen">
+    <div class="mascot-container">
+      <!-- DAMN AI Mascot Face -->
+      <div class="mascot-face">
+        <!-- Eyes -->
+        <div class="mascot-eyes">
+          <div class="mascot-eye left-eye">
+            <div class="mascot-pupil"></div>
+            <div class="mascot-eyelid"></div>
+          </div>
+          <div class="mascot-eye right-eye">
+            <div class="mascot-pupil"></div>
+            <div class="mascot-eyelid"></div>
+          </div>
+        </div>
+        <!-- Mouth -->
+        <div class="mascot-mouth"></div>
+      </div>
+      <!-- Brand text -->
+      <h1 class="mascot-brand">DAMN</h1>
+      <p class="mascot-tagline">Your AI Coach is waking up...</p>
+      <div class="mascot-loader">
+        <div class="mascot-loader-bar"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== AUTH SCREEN ==================== -->
+  <div id="authScreen" class="auth-screen" style="display: none;">
+    <div class="auth-container">
+      <!-- Logo -->
+      <div class="auth-logo">
+        <img src="Damn.png" alt="DAMN" class="auth-logo-img">
+      </div>
+      <h1 class="auth-brand">DAMN</h1>
+
+      <!-- Auth Card -->
+      <div class="glass-card auth-card">
+        <h2 id="authTitle" class="auth-title">Welcome Back</h2>
+        <p id="authSubtitle" class="auth-subtitle">Continue your lock-in</p>
+
+        <form id="authForm" data-mode="login" onsubmit="handleAuthSubmit(event)">
+          <!-- Name (signup only) -->
+          <div id="authNameField" style="display: none;">
+            <label class="auth-label">Name</label>
+            <input type="text" id="authName" class="auth-input" placeholder="Your name" autocomplete="name">
+          </div>
+
+          <div>
+            <label class="auth-label">Email</label>
+            <input type="email" id="authEmail" class="auth-input" placeholder="you@email.com" required autocomplete="email">
+          </div>
+
+          <div>
+            <label class="auth-label">Password</label>
+            <input type="password" id="authPassword" class="auth-input" placeholder="Min 6 characters" required autocomplete="current-password">
+          </div>
+
+          <div id="authError" class="auth-error"></div>
+
+          <button type="submit" id="authSubmitBtn" class="btn btn-auth">Log In</button>
+        </form>
+
+        <div style="display: flex; align-items: center; margin: 1rem 0; color: var(--text-muted); font-size: 0.78rem;">
+          <div style="flex:1; height:1px; background: rgba(255,255,255,0.2);"></div>
+          <span style="padding: 0 0.5rem;">OR</span>
+          <div style="flex:1; height:1px; background: rgba(255,255,255,0.2);"></div>
+        </div>
+
+        <button type="button" class="btn btn-secondary" onclick="handleGoogleSignIn()" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.55rem; padding: 0.65rem; border-radius: var(--radius-btn); font-weight: 600; font-size: 0.85rem;">
+          <svg width="18" height="18" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.62z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+          </svg>
+          <span>Continue with Google</span>
+        </button>
+
+        <p id="authToggleText" class="auth-toggle">
+          No account? <a href="#" onclick="toggleAuthMode(); return false;">Sign Up</a>
+        </p>
+
+        <div style="margin-top: 1rem; text-align: center;">
+          <button type="button" class="btn btn-ghost" onclick="continueAsGuest()" style="font-size: 0.82rem; color: var(--apple-cyan); text-decoration: underline; background: transparent; border: none; cursor: pointer;">
+            ⚡ Continue as Guest (Offline Mode)
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== FULL-SCREEN CHATGPT-STYLE ONBOARDING ==================== -->
+  <div id="onboardingScreen" class="onboarding-fullscreen" style="display: none;">
+    <!-- Top Header -->
+    <div class="chat-screen-header" style="display: flex; align-items: center; justify-content: space-between;">
+      <div class="brand">
+        <div class="brand-logo-wrapper" style="width: 38px; height: 38px; border-radius: 12px;">
+          <img src="Damn.png" alt="DAMN" class="brand-logo-img">
+        </div>
+        <div>
+          <h2 class="chat-screen-title">DAMN</h2>
+        </div>
+      </div>
+      <button class="btn btn-secondary" id="btnBackToDashboard" onclick="showAppScreen()" style="padding: 0.4rem 0.85rem; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.4rem; white-space: nowrap; flex-shrink: 0;">
+        <i data-lucide="arrow-left" size="14"></i>
+        <span>Back</span>
+      </button>
+    </div>
+
+    <!-- Scrollable Chat Body -->
+    <div class="chat-screen-body" id="chatMessagesScreen"></div>
+
+    <!-- Bottom Input & Quick Options Bar -->
+    <div class="chat-screen-footer">
+      <div class="chat-quick-options" id="chatQuickOptionsScreen"></div>
+      <form onsubmit="handleUserChatInputScreen(event)" class="chat-screen-input-form">
+        <input type="text" id="chatInputScreen" class="auth-input chat-input-field" placeholder="Type or speak command..." autocomplete="off">
+        <button type="button" class="btn btn-secondary btn-mic" id="btnMicScreen" onclick="toggleVoiceRecognition('chatInputScreen', 'btnMicScreen')" title="Voice Command">
+          <i data-lucide="mic" size="18"></i>
+        </button>
+        <button type="submit" class="btn btn-primary chat-send-btn">
+          <i data-lucide="send" size="18"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MAIN APP ==================== -->
+  <div id="appScreen" style="display: none;">
+
+    <!-- Header Bar -->
+    <header class="app-header">
+      <div class="header-container">
+        <div class="brand">
+          <div class="brand-logo-wrapper">
+            <img src="Damn.png" alt="DAMN" class="brand-logo-img">
+          </div>
+          <span class="brand-name">DAMN</span>
+        </div>
+
+        <div class="header-right">
+          <!-- XP Level Badge (Desktop Only) -->
+          <div class="xp-level-bar desktop-only" title="Discipline Rank">
+            <div style="font-size: 0.75rem; font-weight: 700; color: var(--apple-purple);" id="badgeUserRank">
+              LVL 1
+            </div>
+          </div>
+
+          <!-- Lock-In Days Pill (Desktop Only) -->
+          <button class="glass-pill day-badge desktop-only" onclick="openLockInModal()" title="Customize Lock-In Duration">
+            <span>Day</span>
+            <span class="font-mono text-emerald" id="headerDayCurrent">01</span>
+            <span class="text-muted">/<span id="headerDayTotal">60</span></span>
+          </button>
+
+          <!-- Smart Alerts Button -->
+          <button class="header-icon-btn" id="btnNotificationToggle" onclick="requestNotificationPermission()" title="Enable Smart AI Alerts">
+            <i data-lucide="bell"></i>
+          </button>
+
+          <!-- Squad Button -->
+          <button class="header-icon-btn" id="btnHeaderSquad" data-tab="squad" title="My Squad">
+            <i data-lucide="users"></i>
+          </button>
+
+          <div class="header-icon-btn streak-badge" id="btnHeaderStreak" title="Current Streak">
+            <span id="headerStreak">🔥0</span>
+          </div>
+
+          <button class="btn btn-finish" id="btnFinishToday">
+            <i data-lucide="lock"></i>
+            <span>Finish</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Wrapper -->
+    <main class="main-wrapper">
+
+      <!-- Tab View: Home Dashboard -->
+      <div class="tab-page active" id="tab-dashboard">
+        <!-- Personalized Lock-In Banner -->
+        <div class="motto-banner" id="mottoBanner">
+          <div>
+            <div class="motto-greeting">
+              Welcome back, <span id="lblUserName">User</span>
+            </div>
+            <div class="motto-text" id="lblMottoSub">
+              <strong id="lblLockInDaysText">60 Days Protocol</strong>
+            </div>
+          </div>
+          <button class="btn btn-secondary" onclick="openLockInModal()" style="padding: 0.35rem 0.75rem; font-size: 0.78rem;">
+            <i data-lucide="sliders" size="14"></i>
+            <span>Edit</span>
+          </button>
+        </div>
+
+        <!-- Top Mission Dashboard Bar -->
+        <section class="stats-grid" id="statsGrid">
+          <div class="glass-card stat-card">
+            <div class="stat-top">
+              <span>Mission</span>
+              <i data-lucide="target" class="stat-icon"></i>
+            </div>
+            <div class="stat-main">
+              <span class="stat-value" id="valDayProgress">Day 01</span>
+              <span class="stat-sub font-mono" id="valDaysLeft">59d left</span>
+            </div>
+          </div>
+
+          <div class="glass-card stat-card highlight-card">
+            <div class="stat-top">
+              <span>Execution</span>
+              <i data-lucide="zap" class="stat-icon icon-emerald"></i>
+            </div>
+            <div class="stat-flex">
+              <div>
+                <span class="stat-value" id="valTodayPct">0%</span>
+                <span class="stat-sub text-emerald" id="valExecutionStatus">In Progress</span>
+              </div>
+              <div class="circle-progress" id="ringExecution">
+                <svg viewBox="0 0 36 36">
+                  <path class="circle-bg"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                  <path class="circle-fill" id="ringFillExecution" stroke-dasharray="0, 100"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass-card stat-card">
+            <div class="stat-top">
+              <span>Recovery</span>
+              <i data-lucide="activity" class="stat-icon icon-violet"></i>
+            </div>
+            <div class="stat-flex">
+              <div>
+                <span class="stat-value" id="valRecoveryScore">0</span>
+                <span class="stat-sub text-violet" id="valRecoveryStatus">Optimal</span>
+              </div>
+              <div class="circle-progress">
+                <svg viewBox="0 0 36 36">
+                  <path class="circle-bg"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                  <path class="circle-fill stroke-violet" id="ringFillRecovery" stroke-dasharray="0, 100"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Discipline Matrix & Hydration -->
+        <section class="heatmap-section">
+          <div class="glass-card" style="padding: 1.25rem;">
+            <div class="card-header">
+              <div class="card-title">
+                <i data-lucide="grid" class="icon-emerald"></i>
+                <span>Discipline Matrix</span>
+              </div>
+              <span class="glass-pill font-mono" id="txtMatrixTotalDays">60 Days</span>
+            </div>
+            <div class="matrix-grid-scroll">
+              <div class="heatmap-grid" id="heatmapGrid"></div>
+            </div>
+          </div>
+
+          <div class="glass-card" style="padding: 1.25rem;">
+            <div class="card-header">
+              <div class="card-title">
+                <i data-lucide="droplet" class="icon-blue"></i>
+                <span>Hydration</span>
+              </div>
+              <span class="font-mono text-muted" style="font-size: 0.8rem;" id="lblWaterTarget">3000ml</span>
+            </div>
+            <div class="water-progress-bar">
+              <div class="water-progress-fill" id="waterProgressFill" style="width: 0%;"></div>
+            </div>
+            <div class="water-info-flex">
+              <div>
+                <span class="water-current" id="lblWaterCurrent">0</span>
+                <span class="water-unit">ml</span>
+              </div>
+              <span class="water-sub" id="lblWaterPct">0% of daily goal</span>
+            </div>
+            <div class="water-buttons-grid">
+              <button class="btn-water" onclick="addWater(250)">+250ml</button>
+              <button class="btn-water" onclick="addWater(500)">+500ml</button>
+              <button class="btn-water" onclick="addWater(750)">+750ml</button>
+              <button class="btn-water" onclick="addWater(1000)">+1.0L</button>
+            </div>
+          </div>
+
+          <!-- Bento Steps Tracker Card -->
+          <div class="glass-card" style="padding: 1.25rem; margin-bottom: 0.65rem;">
+            <div class="card-header" style="margin-bottom: 0.65rem;">
+              <div class="card-title">
+                <i data-lucide="footprints" class="icon-emerald"></i>
+                <span>Daily Steps Tracker</span>
+              </div>
+              <span class="font-mono text-muted" style="font-size: 0.8rem;" id="lblStepsTarget">10,000 steps</span>
+            </div>
+            <div class="steps-progress-bar">
+              <div class="steps-progress-fill" id="stepsProgressFill" style="width: 0%;"></div>
+            </div>
+            <div class="steps-info-flex">
+              <div>
+                <span class="steps-current" id="lblStepsCurrent">0</span>
+                <span class="steps-unit">steps</span>
+              </div>
+              <span class="steps-sub" id="lblStepsPct">0% of 10k goal</span>
+            </div>
+            <div class="steps-buttons-grid">
+              <button class="btn-steps" onclick="addSteps(1000)">+1,000</button>
+              <button class="btn-steps" onclick="addSteps(2500)">+2,500</button>
+              <button class="btn-steps" onclick="addSteps(5000)">+5,000</button>
+              <button class="btn-steps" onclick="addSteps(10000)">10k Goal</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Daily Execution Sections -->
+        <section class="checklist-grid" id="checklistContainer"></section>
+      </div>
+
+      <!-- Tab View 2: My Squads -->
+      <div class="tab-page" id="tab-squad">
+        <div style="margin-bottom: 1rem;">
+          <h2 style="font-size: 1.35rem; font-weight: 800; font-family: var(--font-heading);">Squad Hub</h2>
+          <p style="font-size: 0.8rem; color: var(--text-sub); font-weight: 600;">Connect with friends & track discipline progress together</p>
+        </div>
+
+        <!-- Card 1: User's Personal Unique Squad Code -->
+        <div class="glass-card" style="padding: 1.25rem; margin-bottom: 1rem;">
+          <div class="card-header" style="margin-bottom: 0.65rem;">
+            <div class="card-title">
+              <i data-lucide="key" class="icon-violet"></i>
+              <span>Your Unique Squad ID</span>
+            </div>
+            <button class="btn btn-primary" onclick="copyMySquadCode()" style="padding: 0.35rem 0.8rem; font-size: 0.78rem;">
+              <i data-lucide="copy" size="14"></i>
+              <span>Copy Code</span>
+            </button>
+          </div>
+          <div style="background: rgba(0,0,0,0.03); padding: 0.85rem 1rem; border-radius: var(--radius-card-sm); display: flex; align-items: center; justify-content: space-between; border: 1.5px dashed rgba(0,0,0,0.1);">
+            <div>
+              <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Share with Friends</div>
+              <div style="font-family: var(--font-mono); font-size: 1.25rem; font-weight: 800; color: var(--text-main); letter-spacing: 1px;" id="mySquadCodeDisplay">DAMN-8K2P91</div>
+            </div>
+            <span class="glass-pill" style="font-size: 0.72rem; font-weight: 700; background: var(--card-mint); color: #10B981;">Your Code</span>
+          </div>
+        </div>
+
+        <!-- Card 2: Join a Squad (Max 5 Squads) -->
+        <div class="glass-card" style="padding: 1.25rem; margin-bottom: 1rem;">
+          <div class="card-header" style="margin-bottom: 0.75rem;">
+            <div class="card-title">
+              <i data-lucide="user-plus" class="icon-emerald"></i>
+              <span>Join a Friend's Squad</span>
+            </div>
+            <span class="glass-pill font-mono" id="lblJoinedSquadsCount">Joined 1/5</span>
+          </div>
+          <div style="display: flex; gap: 0.5rem;">
+            <input type="text" id="inpJoinSquadCode" class="auth-input" placeholder="Enter friend's squad code (e.g. DAMN-X8K9P2)" style="flex: 1; margin: 0; font-size: 0.85rem;">
+            <button class="btn btn-primary" onclick="handleJoinSquad()" style="white-space: nowrap; font-weight: 800;">Join</button>
+          </div>
+        </div>
+
+        <!-- Card 3: Squad Members & Leaderboard -->
+        <div class="glass-card" style="padding: 1.25rem;" id="squadMembersCard">
+          <div class="card-header" style="margin-bottom: 0.75rem;">
+            <span style="font-weight: 800; font-size: 0.98rem; font-family: var(--font-heading);">Squad Leaderboards</span>
+            <button class="btn btn-secondary" onclick="refreshSquad()" style="padding: 0.3rem 0.6rem; font-size: 0.72rem;">
+              <i data-lucide="refresh-cw" size="12"></i>
+              <span>Refresh</span>
+            </button>
+          </div>
+          <div id="squadMembersList">
+            <p style="text-align: center; color: var(--text-muted); padding: 1rem; font-size: 0.85rem;">Join a squad to see live member progress</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab View 3: Daily Tasks -->
+      <div class="tab-page" id="tab-checklist">
+        <div style="margin-bottom: 1rem;">
+          <h2 style="font-size: 1.35rem; font-weight: 800; font-family: var(--font-heading);">Daily Execution Tasks</h2>
+          <p style="font-size: 0.8rem; color: var(--text-sub); font-weight: 600;">100% completion target for today</p>
+        </div>
+        <div id="checklistFocusContainer"></div>
+      </div>
+
+      <!-- Tab View 4: Home Workout 7-Day Split -->
+      <div class="tab-page" id="tab-workout">
+        <div style="margin-bottom: 1rem;">
+          <h2 style="font-size: 1.35rem; font-weight: 800; font-family: var(--font-heading);">Workout Protocol</h2>
+          <p style="font-size: 0.8rem; color: var(--text-sub); font-weight: 600;">Your personalized 7-day workout split</p>
+        </div>
+        <div class="glass-card" style="padding: 1.25rem;">
+          <div class="card-header" style="flex-wrap: wrap; gap: 0.5rem; justify-content: space-between;">
+            <div class="card-title">
+              <i data-lucide="dumbbell" class="icon-emerald"></i>
+              <span>Workout Split</span>
+            </div>
+            <span class="glass-pill font-mono" id="workoutDayTitle" style="max-width: 100%; white-space: normal; line-height: 1.3; word-break: break-word;">Monday</span>
+          </div>
+          <div class="workout-days-nav" id="workoutDaysNav"></div>
+          <div class="exercises-list" id="exercisesList"></div>
+        </div>
+      </div>
+
+      <!-- Tab View 5: Supplement Inventory -->
+      <div class="tab-page" id="tab-supplements">
+        <div style="margin-bottom: 1rem;">
+          <h2 style="font-size: 1.35rem; font-weight: 800; font-family: var(--font-heading);">Supplements Inventory</h2>
+          <p style="font-size: 0.8rem; color: var(--text-sub); font-weight: 600;">Track daily doses and stock levels</p>
+        </div>
+        <div class="glass-card" style="padding: 1.25rem;">
+          <div class="card-header">
+            <div class="card-title">
+              <i data-lucide="pill" class="icon-violet"></i>
+              <span>Supplements</span>
+            </div>
+          </div>
+          <div class="supplements-grid" id="supplementsGrid"></div>
+        </div>
+      </div>
+
+      <!-- Tab View 6: Performance Stats -->
+      <div class="tab-page" id="tab-analytics">
+        <div style="margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <h2 style="font-size: 1.35rem; font-weight: 800; font-family: var(--font-heading);">Performance Analytics</h2>
+            <p style="font-size: 0.8rem; color: var(--text-sub); font-weight: 600;">Execution logs & historical progress</p>
+          </div>
+          <!-- Logout Button -->
+          <button class="btn btn-secondary" onclick="handleLogout()" style="padding: 0.35rem 0.75rem; font-size: 0.78rem;">
+            <i data-lucide="log-out" size="14"></i>
+            <span>Logout</span>
+          </button>
+        </div>
+        <div class="glass-card" style="padding: 1.25rem;">
+          <div class="analytics-metrics-grid">
+            <div class="analytic-box">
+              <span class="analytic-label">Nutrition</span>
+              <span class="analytic-val text-emerald" id="valNutritionPct">0%</span>
+            </div>
+            <div class="analytic-box">
+              <span class="analytic-label">Workout</span>
+              <span class="analytic-val text-emerald" id="valWorkoutPct">0%</span>
+            </div>
+            <div class="analytic-box">
+              <span class="analytic-label">Discipline</span>
+              <span class="analytic-val text-violet" id="valDisciplinePct">0%</span>
+            </div>
+            <div class="analytic-box">
+              <span class="analytic-label">Hydration</span>
+              <span class="analytic-val text-blue" id="valHydrationScore">0%</span>
+            </div>
+          </div>
+
+          <div class="history-table-wrapper">
+            <table class="history-table">
+              <thead>
+                <tr>
+                  <th>Day</th>
+                  <th>Date</th>
+                  <th>Exec</th>
+                  <th>Recov</th>
+                  <th>Weight</th>
+                </tr>
+              </thead>
+              <tbody id="historyTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Telegram Liquid Glass Floating Navigation Dock (Icon-Only) -->
+    <nav class="liquid-dock-nav">
+      <div class="dock-capsule">
+        <button class="nav-item dock-item active" data-tab="dashboard" onclick="switchTab('dashboard')" title="Home">
+          <i data-lucide="house"></i>
+        </button>
+        <button class="nav-item dock-item" data-tab="squad" onclick="switchTab('squad')" title="Squad">
+          <i data-lucide="users-round"></i>
+        </button>
+        <button class="nav-item dock-item" data-tab="checklist" onclick="switchTab('checklist')" title="Tasks">
+          <i data-lucide="clipboard-check"></i>
+        </button>
+        <button class="nav-item dock-item" data-tab="workout" onclick="switchTab('workout')" title="Workout">
+          <i data-lucide="dumbbell"></i>
+        </button>
+        <button class="nav-item dock-item" data-tab="supplements" onclick="switchTab('supplements')" title="Supplements">
+          <i data-lucide="pill"></i>
+        </button>
+        <button class="nav-item dock-item" data-tab="analytics" onclick="switchTab('analytics')" title="Stats">
+          <i data-lucide="chart-no-axes-column-increasing"></i>
+        </button>
+      </div>
+    </nav>
+
+    <!-- GenZ Animated AI Mascot Avatar (Bottom Right Corner) -->
+    <button class="floating-ai-avatar" onclick="openOnboardingChat()" title="DAMN">
+      <div class="ai-avatar-blob">
+        <svg width="42" height="42" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="100" height="100" rx="34" fill="#141416" />
+          <!-- Big Cute Open Eyes -->
+          <circle cx="36" cy="45" r="14" fill="#FFFFFF" />
+          <circle cx="64" cy="45" r="14" fill="#FFFFFF" />
+          <!-- Black Pupils -->
+          <circle cx="38" cy="45" r="7" fill="#141416" />
+          <circle cx="66" cy="45" r="7" fill="#141416" />
+          <circle cx="41" cy="42" r="2.5" fill="#FFFFFF" />
+          <circle cx="69" cy="42" r="2.5" fill="#FFFFFF" />
+          <!-- Cute Happy Smile Mouth -->
+          <path d="M 38 66 Q 50 78 62 66" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" fill="none" />
+        </svg>
+      </div>
+      <span class="ai-avatar-label">DAMN AI</span>
+    </button>
+  </div>
+
+  <!-- ==================== MODALS ==================== -->
+
+  <!-- Lock-In Days Setup Modal -->
+  <div class="modal-overlay" id="modalLockInSetup">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <i data-lucide="flame" style="color: var(--apple-orange)"></i>
+          <h3 style="font-size: 1.1rem; font-weight: 700;">Lock-In Duration</h3>
+        </div>
+        <button class="btn-close" onclick="closeLockInModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="lockin-selector-grid">
+          <div class="btn-lockin-opt" onclick="selectLockInDays(30)">
+            <span class="btn-lockin-days text-blue">30 Days</span>
+          </div>
+          <div class="btn-lockin-opt selected" onclick="selectLockInDays(60)">
+            <span class="btn-lockin-days text-emerald">60 Days</span>
+          </div>
+          <div class="btn-lockin-opt" onclick="selectLockInDays(75)">
+            <span class="btn-lockin-days text-orange">75 Days</span>
+          </div>
+          <div class="btn-lockin-opt" onclick="selectLockInDays(90)">
+            <span class="btn-lockin-days text-violet">90 Days</span>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem;">
+          <div>
+            <label class="auth-label">Name</label>
+            <input type="text" id="inpLockInName" class="auth-input" value="">
+          </div>
+          <div>
+            <label class="auth-label">Target (kg)</label>
+            <input type="number" step="any" id="inpLockInTargetWeight" class="auth-input" value="">
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeLockInModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="confirmLockInSetup()">Lock In</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Finish Today Modal -->
+  <div class="modal-overlay" id="modalFinish">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <img src="Damn.png" alt="DAMN" style="width: 22px; height: 22px; border-radius: 6px; object-fit: cover;">
+          <h3 style="font-size: 1.1rem; font-weight: 700;">End Day</h3>
+        </div>
+        <button class="btn-close" onclick="closeFinishModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="modal-stat-row">
+          <div class="modal-stat-box">
+            <span class="modal-stat-lbl">Execution</span>
+            <span class="modal-stat-val text-emerald" id="modalPct">0%</span>
+          </div>
+          <div class="modal-stat-box">
+            <span class="modal-stat-lbl">Recovery</span>
+            <span class="modal-stat-val text-violet" id="modalRecovery">0</span>
+          </div>
+        </div>
+
+        <div class="missed-box" id="modalMissedBox">
+          <div style="font-weight: 600; color: #ef4444; margin-bottom: 0.3rem;" id="modalMissedTitle">Missed Tasks</div>
+          <div style="font-size: 0.82rem; color: var(--text-muted);" id="modalMissedText">None</div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeFinishModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="confirmFinishToday()">Advance Day</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Routine Editor Modal -->
+  <div class="modal-overlay" id="modalRoutineEditor">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <i data-lucide="edit-3" style="color: var(--apple-blue)"></i>
+          <h3 style="font-size: 1.1rem; font-weight: 700;" id="editorSectionTitle">Edit Routine</h3>
+        </div>
+        <button class="btn-close" onclick="closeRoutineEditor()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div id="editorTasksList" style="margin-bottom: 0.85rem;"></div>
+
+        <div style="display: flex; gap: 0.45rem;">
+          <input type="text" id="editorNewTaskInput" class="auth-input" placeholder="Add new task..." style="flex: 1; margin: 0;" onkeypress="if(event.key==='Enter') addRoutineTask()">
+          <button class="btn btn-primary" onclick="addRoutineTask()" style="white-space: nowrap;">
+            <i data-lucide="plus" size="14"></i> Add
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-footer" style="margin-top: 0.85rem;">
+        <button class="btn btn-secondary" onclick="closeRoutineEditor()">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Onboarding AI Chat Modal -->
+  <div class="modal-overlay" id="modalOnboardingChat">
+    <div class="modal-card" style="max-width: 480px; padding: 1.25rem;">
+      <div class="modal-header" style="margin-bottom: 0.75rem;">
+        <div style="display: flex; align-items: center; gap: 0.6rem;">
+          <button class="btn btn-secondary" onclick="closeOnboardingChat()" style="padding: 0.35rem 0.75rem; font-size: 0.78rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap; flex-shrink: 0;">
+            <i data-lucide="arrow-left" size="14"></i>
+            <span>Back</span>
+          </button>
+          <div class="brand-logo-wrapper" style="width: 32px; height: 32px; border-radius: 10px;">
+            <img src="Damn.png" alt="DAMN" class="brand-logo-img">
+          </div>
+          <div>
+            <h3 style="font-size: 1.05rem; font-weight: 800;">DAMN</h3>
+          </div>
+        </div>
+        <button class="btn-close" onclick="closeOnboardingChat()">&times;</button>
+      </div>
+
+      <div class="modal-body" style="display: flex; flex-direction: column; gap: 0.75rem;">
+        <!-- Chat Messages Container -->
+        <div class="chat-messages-box" id="chatMessages"></div>
+
+        <!-- Quick Option Pills -->
+        <div class="chat-quick-options" id="chatQuickOptions"></div>
+
+        <!-- Input Bar -->
+        <form onsubmit="handleUserChatInput(event)" style="display: flex; gap: 0.4rem; margin-top: 0.5rem;">
+          <input type="text" id="chatInput" class="auth-input" placeholder="Type or speak command..." style="flex: 1; margin: 0;">
+          <button type="button" class="btn btn-secondary btn-mic" id="btnMicModal" onclick="toggleVoiceRecognition('chatInput', 'btnMicModal')" title="Voice Command">
+            <i data-lucide="mic" size="16"></i>
+          </button>
+          <button type="submit" class="btn btn-primary" style="padding: 0.65rem 1rem;">
+            <i data-lucide="send" size="16"></i>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Squad Member Profile Modal Card -->
+  <div class="modal-overlay" id="modalMemberProfile">
+    <div class="modal-card" style="max-width: 420px; padding: 1.5rem; border-radius: 28px;">
+      <div class="modal-header" style="margin-bottom: 1rem; border-bottom: 1px solid rgba(0,0,0,0.06); padding-bottom: 0.75rem;">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <div id="memberModalAvatar" class="avatar-badge" style="width: 46px; height: 46px; font-size: 1.25rem; font-weight: 800; background: var(--accent-black); color: white;">
+            U
+          </div>
+          <div>
+            <h3 id="memberModalName" style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin: 0;">User Profile</h3>
+            <div id="memberModalRankTitle" style="font-size: 0.75rem; color: var(--text-sub); font-weight: 700; margin-top: 2px;">LVL 1 • SQUAD MEMBER</div>
+          </div>
+        </div>
+        <button class="btn-close" onclick="closeMemberProfileModal()">&times;</button>
+      </div>
+
+      <div class="modal-body" style="display: flex; flex-direction: column; gap: 1rem;">
+        <!-- Stats Grid -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+          <div class="glass-card" style="padding: 0.85rem; border-radius: 18px; text-align: center; background: #FFF8E1;">
+            <div style="font-size: 0.68rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Streak</div>
+            <div id="memberModalStreak" class="font-mono" style="font-size: 1.25rem; font-weight: 800; color: #D97706; margin-top: 0.2rem;">🔥 0d</div>
+          </div>
+          <div class="glass-card" style="padding: 0.85rem; border-radius: 18px; text-align: center; background: #E2F5E8;">
+            <div style="font-size: 0.68rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Today Exec</div>
+            <div id="memberModalExec" class="font-mono" style="font-size: 1.25rem; font-weight: 800; color: #059669; margin-top: 0.2rem;">0%</div>
+          </div>
+          <div class="glass-card" style="padding: 0.85rem; border-radius: 18px; text-align: center; background: #EDE7F6;">
+            <div style="font-size: 0.68rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Lock-In Protocol</div>
+            <div id="memberModalLockIn" class="font-mono" style="font-size: 1.1rem; font-weight: 800; color: #7C3AED; margin-top: 0.2rem;">60 Days</div>
+          </div>
+          <div class="glass-card" style="padding: 0.85rem; border-radius: 18px; text-align: center; background: #FFEBF0;">
+            <div style="font-size: 0.68rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Total XP</div>
+            <div id="memberModalXp" class="font-mono" style="font-size: 1.1rem; font-weight: 800; color: #E11D48; margin-top: 0.2rem;">0 XP</div>
+          </div>
+        </div>
+
+        <!-- Squad Rank & Profile Details -->
+        <div class="glass-card" style="padding: 1rem; border-radius: 18px; display: flex; flex-direction: column; gap: 0.6rem; background: var(--card-white);">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-sub);">Squad Rank Position</span>
+            <span id="memberModalSquadRank" class="glass-pill font-mono" style="font-weight: 800; background: var(--accent-black); color: white; padding: 0.25rem 0.65rem;">#1 in Squad</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-sub);">Fitness Goal</span>
+            <span id="memberModalGoal" style="font-size: 0.82rem; font-weight: 800; color: var(--text-main);">Fat Loss & Recomp</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-sub);">Workout Routine</span>
+            <span id="memberModalWorkout" style="font-size: 0.82rem; font-weight: 800; color: var(--text-main);">Gym • Push/Pull/Legs</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-sub);">Live Status</span>
+            <span id="memberModalStatus" class="glass-pill font-mono" style="background: #E2F5E8; color: #059669; font-size: 0.75rem; font-weight: 800;">Active Now</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer" style="margin-top: 1rem;">
+        <button class="btn btn-secondary" onclick="closeMemberProfileModal()" style="width: 100%; border-radius: 16px; font-weight: 800; padding: 0.75rem;">Close Profile</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- App scripts -->
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+  <script src="onboarding.js"></script>
+  <script src="auth.js"></script>
+</body>
+
+</html>

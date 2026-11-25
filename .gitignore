@@ -1,0 +1,62 @@
+# ==========================================
+# DAMN App — Security & Credentials Protection
+# ==========================================
+.env
+.env.*
+!.env.example
+config.js
+*.local
+google-services.json
+GoogleService-Info.plist
+*serviceAccount*.json
+*firebase-adminsdk*.json
+*.jks
+*.keystore
+*.p8
+*.p12
+*.key
+*.pem
+*.mobileprovision
+
+# ==========================================
+# Dependencies & Expo / React Native Builds
+# ==========================================
+node_modules/
+.expo/
+.expo-shared/
+dist/
+web-build/
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+metro-health-check*
+
+# ==========================================
+# Android & iOS Native Build Artifacts
+# ==========================================
+android/.gradle/
+android/app/build/
+android/build/
+android/local.properties
+android/captures/
+android/.cxx/
+android/app/src/main/assets/index.android.bundle
+*.bundle
+ios/Pods/
+ios/build/
+*.apk
+*.aab
+*.ipa
+*.hprof
+hs_err_pid*.log
+
+# ==========================================
+# OS, Editor & Debug Artifacts
+# ==========================================
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+__pycache__/
+*.py[cod]

@@ -1,0 +1,8 @@
+# DAMN AI — Server Security Configuration
+<FilesMatch "^\.(env|git|htaccess)">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Disable Directory Browsing
+Options -Indexes

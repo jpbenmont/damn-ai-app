@@ -1,0 +1,50 @@
+{
+  "expo": {
+    "name": "DAMN",
+    "slug": "damn-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./Damn.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./Damn.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0B0C0E"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.damn.lockinapp"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./Damn.png",
+        "backgroundColor": "#3EA6FF"
+      },
+      "package": "com.damn.lockinapp"
+    },
+    "web": {
+      "favicon": "./Damn.png"
+    },
+    "notification": {
+      "icon": "./assets/notification_icon.png",
+      "color": "#141416"
+    },
+    "plugins": [
+      "expo-font",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification_icon.png",
+          "color": "#141416"
+        }
+      ],
+      "expo-speech-recognition",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow DAMN to access your location to notify you about your shopping and errand items when you leave home."
+        }
+      ]
+    ]
+  }
+}
